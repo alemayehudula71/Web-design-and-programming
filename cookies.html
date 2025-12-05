@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multiple Cookies Example</title>
+</head>
+<body>
+
+<h2>JavaScript Multiple Cookies Example</h2>
+
+<button onclick="createCookies()">Create Cookies</button>
+<button onclick="readCookies()">Read Cookies</button>
+<button onclick="deleteCookies()">Delete Cookies</button>
+
+<p id="output"></p>
+
+<script>
+    function createCookies() {
+        document.cookie = "username=Alex; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
+        document.cookie = "age=20; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
+        document.cookie = "color=blue; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
+
+        document.getElementById("output").innerHTML = 
+            "Cookies created:<br>username = Alex<br>age = 20<br>color = blue";
+    }
+
+    function readCookies() {
+        let allCookies = document.cookie;
+        if (allCookies) {
+            document.getElementById("output").innerHTML = 
+                "Stored Cookies:<br>" + allCookies.replace(/;/g, "<br>");
+        } else {
+            document.getElementById("output").innerHTML = "No cookies found!";
+        }
+    }
+
+    function deleteCookies() {
+        document.cookie = "username=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+        document.cookie = "age=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+        document.cookie = "color=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+
+        document.getElementById("output").innerHTML = "All cookies deleted.";
+    }
+</script>
+
+</body>
+</html>
