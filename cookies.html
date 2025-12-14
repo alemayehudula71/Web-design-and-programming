@@ -1,46 +1,123 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Multiple Cookies Example</title>
+  <meta charset="utf-8" />
+  <title>Cookie Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width:700px; margin:2rem auto; }
+    input, button { padding: .4rem; margin: .2rem 0; }
+    pre { background:#f6f6f6; padding:1rem; border-radius:6px; }
+  </style>
 </head>
 <body>
+  <h1>JavaScript Cookies Demo</h1>
 
-<h2>JavaScript Multiple Cookies Example</h2>
+  <label>Cookie name: <input id="name" value="username"></label><br>
+  <label>Value: <input id="value" value="Alex"></label><br>
+  <label>Expires (days, leave empty = session): <input id="days" type="number" min="0" placeholder="e.g. 7"></label><br>
+  <button onclick="setCookieFromForm()">Set cookie</button>
+  <button onclick="deleteCookieFromForm()">Delete cookie</button>
+  <button onclick="showAllCookies()">Show all cookies</button>
 
-<button onclick="createCookies()">Create Cookies</button>
-<button onclick="readCookies()">Read Cookies</button>
-<button onclick="deleteCookies()">Delete Cookies</button>
+  <h3>Results</h3>
+  <pre id="output"></pre>
 
-<p id="output"></p>
+  <script>
+  // Set a cookie
+  // name: cookie name (string)
+  // value: cookie value (string)
+  // days: number of days until expiry (omit/0 => session cookie)
+  // options: object for path, secure, sameSite
+  function setCookie(name, value, days, options = {}) {
+    if (!name) return;
+    // encode to support special characters
+    const encodedName = encodeURIComponent(name);
+    const encodedValue = encodeURIComponent(value);
 
-<script>
-    function createCookies() {
-        document.cookie = "username=Alex; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
-        document.cookie = "age=20; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
-        document.cookie = "color=blue; path=/; expires=Tue, 31 Dec 2027 23:59:59 GMT;";
+    let cookie = encodedName + "=" + encodedValue;
 
-        document.getElementById("output").innerHTML = 
-            "Cookies created:<br>username = Alex<br>age = 20<br>color = blue";
+    if (days && Number(days) > 0) {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + Number(days) * 24 * 60 * 60 * 1000);
+      cookie += "; expires=" + expires.toUTCString();
     }
 
-    function readCookies() {
-        let allCookies = document.cookie;
-        if (allCookies) {
-            document.getElementById("output").innerHTML = 
-                "Stored Cookies:<br>" + allCookies.replace(/;/g, "<br>");
-        } else {
-            document.getElementById("output").innerHTML = "No cookies found!";
-        }
+    // default path
+    cookie += "; path=" + (options.path || "/");
+
+    // optional attributes
+    if (options.sameSite) cookie += "; SameSite=" + options.sameSite; // Lax / Strict / None
+    if (options.secure) cookie += "; Secure"; // only over HTTPS
+    // note: HttpOnly cannot be set from client-side JS
+
+    document.cookie = cookie;
+  }
+
+  // Read a cookie by name (returns string or null)
+  function getCookie(name) {
+    const encodedName = encodeURIComponent(name) + "=";
+    const parts = document.cookie.split("; ");
+    for (let part of parts) {
+      if (part.indexOf(encodedName) === 0) {
+        return decodeURIComponent(part.substring(encodedName.length));
+      }
     }
+    return null;
+  }
 
-    function deleteCookies() {
-        document.cookie = "username=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-        document.cookie = "age=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-        document.cookie = "color=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+  // Delete cookie by setting expiry in the past
+  function deleteCookie(name, path = "/") {
+    // set with expiry in the past
+    document.cookie = encodeURIComponent(name) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=" + path;
+  }
 
-        document.getElementById("output").innerHTML = "All cookies deleted.";
+  // Return all cookies as an object {name: value, ...}
+  function listCookies() {
+    const result = {};
+    if (!document.cookie) return result;
+    const parts = document.cookie.split("; ");
+    for (let part of parts) {
+      const eq = part.indexOf("=");
+      const name = decodeURIComponent(part.substring(0, eq));
+      const value = decodeURIComponent(part.substring(eq + 1));
+      result[name] = value;
     }
-</script>
+    return result;
+  }
 
+  // Helpers tied to UI
+  function setCookieFromForm() {
+    const name = document.getElementById("name").value.trim();
+    const value = document.getElementById("value").value;
+    const days = document.getElementById("days").value;
+    // Example: set SameSite=Lax and path="/"
+    setCookie(name, value, days ? Number(days) : 0, { sameSite: "Lax" });
+    output("Set cookie: " + name + "=" + value + (days ? (" (expires in " + days + " day(s))") : " (session cookie)"));
+  }
+
+  function deleteCookieFromForm() {
+    const name = document.getElementById("name").value.trim();
+    deleteCookie(name);
+    output("Deleted cookie: " + name);
+  }
+
+  function showAllCookies() {
+    const all = listCookies();
+    output(JSON.stringify(all, null, 2));
+  }
+
+  function output(text) {
+    document.getElementById("output").textContent = text;
+  }
+
+  // --- Examples you can run from the console ---
+  // setCookie('username','Alex',7);          // persistent for 7 days
+  // setCookie('theme','dark');               // session cookie
+  // setCookie('prefs', JSON.stringify({a:1}), 30); // store JSON string (max ~4KB total per cookie)
+  // getCookie('username');                   // returns "Alex" or null
+  // deleteCookie('username');
+  // listCookies();
+  </script>
 </body>
 </html>
